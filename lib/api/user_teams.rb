@@ -55,6 +55,29 @@ module Gitlab
       end
 
 
+      # Create user_team for a specified user. Available only for admin
+      #
+      # Parameters:
+      #   name (required) - The name of the user_team
+      #   path (required) - The path of the user_team
+      # Example Request:
+      #   POST /user_teams/user/:user_id
+      post "user/:user_id" do
+        authenticated_as_admin!
+        user = User.find(params[:user_id])
+        required_attributes! [:name, :path]
+
+        attrs = attributes_for_keys [:name, :path]
+        @user_team = UserTeam.new(attrs)
+        @user_team.owner = user
+
+        if @user_team.save
+          present @user_team, with: Entities::UserTeam
+        else
+          not_found!
+        end
+      end
+
       # Get a single user_team
       #
       # Parameters:
