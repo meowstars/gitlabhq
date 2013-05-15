@@ -39,6 +39,29 @@ module Gitlab
         end
       end
 
+      # Create group for a specified user. Available only for admin
+      #
+      # Parameters:
+      #   name (required) - The name of the group
+      #   path (required) - The path of the group
+      # Example Request:
+      #   POST /groups/user/:user_id
+      post "user/:user_id" do
+        authenticated_as_admin!
+        required_attributes! [:name, :path]
+
+        user = User.find(params[:user_id])
+        attrs = attributes_for_keys [:name, :path]
+        @group = Group.new(attrs)
+        @group.owner = user
+
+        if @group.save
+          present @group, with: Entities::Group
+        else
+          not_found!
+        end
+      end
+
       # Get a single group, with containing projects
       #
       # Parameters:
